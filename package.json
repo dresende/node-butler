@@ -1,0 +1,25 @@
+{
+	"name"			: "butler",
+	"version"		: "0.0.1",
+	"description"	: "NodeJS Butler",
+	"keywords"		: [
+		"butler",
+		"async",
+		"promisse",
+		"future",
+		"fiber"
+	],
+	"author"		: {
+		"name"	: "Diogo Resende",
+		"email"	: "dresende@thinkdigital.pt",
+		"url"	: "http://www.thinkdigital.pt"
+	},
+	"engines"		: {
+		"node"	: ">= 0.4.0"
+	},
+	"directories"	: {
+		"lib"		: "./lib",
+		"example"	: "./examples"
+	},
+	"main"			: "./lib/butler"
+}

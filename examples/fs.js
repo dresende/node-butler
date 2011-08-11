@@ -1,47 +1,42 @@
-var Butler = require("./../lib/butler").Butler,
-    fs = require("fs"),
-    path = require("path");
+var fs = require("fs"),
+    Butler = require("./../lib/butler").Butler,
+    Alfred = new Butler();
 
-var b = new Butler(),
-    file = __dirname + "/fs.js",
-    fd;
+// fs.readFile()
+function readFileAsync(filename, cb) {
+	Alfred
+		.add(fs.open, filename, "r")
+		.wait(function (err) {
+			if (err) { cb(err); return false; }
 
-b.add(fs.open, file, "r")
- .wait(function (err, values) {
- 	if (err) {
- 		console.log("error!", err);
- 		return false;
- 	}
- 	console.log("OPENED %s", path.basename(file));
- 	fd = values[0];
- })
- .add(fs.fstat)
- .wait(function (err, values, butler) {
- 	if (err) {
- 		console.log("error!", err);
- 		return false;
- 	}
+			this.storage.fd = this.params.first();
+		})
+		.add(fs.fstat)
+		.wait(function (err) {
+			if (err) { cb(err); return false; }
 
- 	var size = values[0].size;
-	butler.params.set(fd, new Buffer(size), 0, size, 0);
- })
- .add(fs.read)
- .wait(function (err, values, butler) {
- 	if (err) {
- 		return console.log("error!", err);
- 	}
+			var size = this.params.get(0).size;
+			this.params.set(this.storage.fd, new Buffer(size), 0, size, 0);
+		})
+		.add(fs.read)
+		.wait(function (err) {
+			if (err) { cb(err); return false; }
 
- 	console.log("READ %d BYTES FROM %s", values[0], path.basename(file));
- 	// file content is here:
- 	//console.log("-------------------\n%s\n----------------\n", values[1]);
+			this.storage.data = this.params.get(1);
+			this.params.set(this.storage.fd);
+		})
+		.add(fs.close)
+		.wait(function (err) {
+			if (err) { cb(err); return false; }
+			cb(null, this.storage.data);
+		});
+}
 
- 	butler.params.set(fd);
- })
- .add(fs.close)
- .wait(function (err) {
- 	if (err) {
- 		return console.log("error!", err);
- 	}
-
- 	console.log("CLOSED %s", path.basename(file));
- });
+readFileAsync(__dirname + "/fs.js", function (err, data) {
+	if (err) {
+		return console.log("error reading file", err);
+	}
+	console.log("FILE\n-------------------------");
+	console.log(data);
+	console.log("-------------------------");
+});

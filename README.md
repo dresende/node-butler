@@ -17,17 +17,13 @@ This module helps when you need to call several asynchronous calls one after eac
     function readFileAsync(filename, cb) {
       Alfred
         .add(fs.open, filename, "r")
-        .wait(function (err) {
-          if (err) { cb(err); return false; }
-
-          this.storage.fd = this.params.first();
-        })
+        .store("fd") // store return value from previous call as 'fd'
         .add(fs.fstat)
         .wait(function (err) {
           if (err) { cb(err); return false; }
 
           var size = this.params.get(0).size;
-          this.params.set(this.storage.fd, new Buffer(size), 0, size, 0);
+          this.params.set(this.storage.fd, new Buffer(size), 0, size, 0); // remember 'fd' ?
         })
         .add(fs.read)
         .wait(function (err) {

@@ -6,11 +6,7 @@ var fs = require("fs"),
 function readFileAsync(filename, cb) {
 	Alfred
 		.add(fs.open, filename, "r")
-		.wait(function (err) {
-			if (err) { cb(err); return false; }
-
-			this.storage.fd = this.params.first();
-		})
+		.store("fd")
 		.add(fs.fstat)
 		.wait(function (err) {
 			if (err) { cb(err); return false; }

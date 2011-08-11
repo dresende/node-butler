@@ -28,6 +28,15 @@ b.add(asyncAdd, 1, 2)
  .add(asyncDouble)
  .wait(function (err, values, butler) {
  	console.log("final=", values[0]);
+
+ 	console.log("now going parallel");
+ })
+ .add(asyncDouble, 5)
+ .add(asyncDouble, 10)
+ .add(asyncDouble, 15)
+ .add(asyncDouble, 20)
+ .parallel(function (returns) {
+ 	console.log(returns);
  });
 
 function asyncAdd(a, b, cb) {

@@ -23,7 +23,8 @@ b.add(asyncAdd, 1, 2)
  		return console.log("error!", err);
  	}
  	console.log("%d + 1 = %d", values[0], values[0] + 1);
- 	return [ values[0] + 1 ];
+
+ 	butler.params.set(values[0] + 1);
  })
  .add(asyncDouble)
  .wait(function (err, values, butler) {

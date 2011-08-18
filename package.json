@@ -1,7 +1,7 @@
 {
 	"name"			: "butler",
-	"version"		: "0.0.3",
-	"description"	: "NodeJS Butler",
+	"version"		: "0.0.4",
+	"description"	: "A "simple" asynchronous chaining butler",
 	"keywords"		: [
 		"butler",
 		"async",

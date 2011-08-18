@@ -1,31 +1,33 @@
 var fs = require("fs"),
-    Butler = require("./../lib/butler").Butler,
-    Alfred = new Butler();
+    Butler = require("./../lib/butler").Butler;
 
 // fs.readFile()
 function readFileAsync(filename, cb) {
+	var Alfred = new Butler();
+
 	Alfred
-		.add(fs.open, filename, "r")
-		.store("fd")
-		.add(fs.fstat)
-		.wait(function (err) {
+	.add(fs.open, filename, "r")
+	.store("fd")
+	.chain(fs.fstat)
+	.wait(function (err, stats) {
+		if (err) { cb(err); return false; }
+
+		// Alfred.storage.fd was saved previously using .store("fd", [ param index = 0])
+		Alfred.storage.size = stats.size;
+
+		Alfred
+		.add(fs.read, Alfred.storage.fd, new Buffer(Alfred.storage.size), 0, Alfred.storage.size, 0)
+		.wait(function (err, size, data) {
 			if (err) { cb(err); return false; }
 
-			var size = this.params.get(0).size;
-			this.params.set(this.storage.fd, new Buffer(size), 0, size, 0);
+			Alfred.storage.data = data;
 		})
-		.add(fs.read)
+		.add(fs.close, Alfred.storage.fd)
 		.wait(function (err) {
 			if (err) { cb(err); return false; }
-
-			this.storage.data = this.params.get(1);
-			this.params.set(this.storage.fd);
-		})
-		.add(fs.close)
-		.wait(function (err) {
-			if (err) { cb(err); return false; }
-			cb(null, this.storage.data);
+			cb(null, Alfred.storage.data);
 		});
+	});
 }
 
 readFileAsync(__dirname + "/fs.js", function (err, data) {

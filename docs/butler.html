@@ -1,304 +1,234 @@
-<!DOCTYPE html>  <html> <head>   <title>butler.js</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               butler.js             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>A simple asynchronous chaining butler</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="kd">var</span> <span class="nx">util</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">&quot;util&quot;</span><span class="p">),</span>
+<!DOCTYPE html>  <html> <head>   <title>butler.js</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               butler.js             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>A "simple" asynchronous chaining butler</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="kd">var</span> <span class="nx">util</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">&quot;util&quot;</span><span class="p">),</span>
     <span class="nx">events</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">&quot;events&quot;</span><span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p><strong>The Butler!</strong></p>
 
 <p>Initializes some stuff like action list and storage object. It
 also defines himself as not working.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="kd">function</span> <span class="nx">Butler</span><span class="p">()</span> <span class="p">{</span>
     <span class="nx">events</span><span class="p">.</span><span class="nx">EventEmitter</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
 
-    <span class="k">this</span><span class="p">.</span><span class="nx">actions</span> <span class="o">=</span> <span class="p">[];</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">tasksPolls</span> <span class="o">=</span> <span class="p">[];</span>
     <span class="k">this</span><span class="p">.</span><span class="nx">storage</span> <span class="o">=</span> <span class="p">{};</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">_working</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">_last_wait</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">_scope</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">jobs</span> <span class="o">=</span> <span class="p">[];</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">scope</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">working</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
 <span class="p">}</span>
 <span class="nx">util</span><span class="p">.</span><span class="nx">inherits</span><span class="p">(</span><span class="nx">Butler</span><span class="p">,</span> <span class="nx">events</span><span class="p">.</span><span class="nx">EventEmitter</span><span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>Before adding a method from an object you must call
 <code>.scope(object)</code> so the method is properly called with
 the <code>this</code> correctly set. After that, if you want to
 unset the scope for the next calls, just run <code>.scope()</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">Butler</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">scope</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">scope</span><span class="p">)</span> <span class="p">{</span>
-	<span class="k">this</span><span class="p">.</span><span class="nx">_scope</span> <span class="o">=</span> <span class="nx">scope</span> <span class="o">||</span> <span class="kc">null</span><span class="p">;</span>
+	<span class="k">this</span><span class="p">.</span><span class="nx">scope</span> <span class="o">=</span> <span class="nx">scope</span> <span class="o">||</span> <span class="kc">null</span><span class="p">;</span>
 	<span class="k">return</span> <span class="k">this</span><span class="p">;</span>
-<span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>Add an asynchronous call to the Butler. The first parameter is
-a call reference and the other parameters are possible arguments
-(if needed). A callback will be appended to the arguments so your
-asynchronous call must have a last parameter which is the return
-<strong>callback that must have an error argument</strong> as first parameter or
-don't have any arguments at all.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">Butler</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">add</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-	<span class="kd">var</span> <span class="nx">params</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">slice</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">arguments</span><span class="p">);</span>
-
-	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">params</span><span class="p">.</span><span class="nx">length</span> <span class="o">||</span> <span class="k">typeof</span> <span class="nx">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;function&quot;</span><span class="p">)</span> <span class="p">{</span>
-		<span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">({</span> <span class="nx">code</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">message</span><span class="o">:</span> <span class="s2">&quot;Function not specified&quot;</span> <span class="p">});</span>
+<span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>Add a new async task on a new job poll. This will force
+a new poll creation. You can chain other calls by using
+.chain()</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">Butler</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">add</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+	<span class="k">this</span><span class="p">.</span><span class="nx">_addJob</span><span class="p">(</span><span class="s2">&quot;async&quot;</span><span class="p">,</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">slice</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">arguments</span><span class="p">));</span>
+	<span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+<span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>Store a return argument from the previous call. The first
+parameter should be a key string and the second should be
+the return argument index (defaults to 0 - the first).</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">Butler</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">store</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+	<span class="k">this</span><span class="p">.</span><span class="nx">_addJob</span><span class="p">(</span><span class="s2">&quot;store&quot;</span><span class="p">,</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">slice</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">arguments</span><span class="p">));</span>
+	<span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+<span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Shortcut for .chainLeft()</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">Butler</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">chain</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">chainLeft</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">arguments</span><span class="p">);</span>
+<span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Chain an async call to be run after the previous added call,
+using the return arguments as the first parameters. You can
+add more after them.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">Butler</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">chainLeft</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+	<span class="k">this</span><span class="p">.</span><span class="nx">_addJob</span><span class="p">(</span><span class="s2">&quot;chain-left&quot;</span><span class="p">,</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">slice</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">arguments</span><span class="p">));</span>
+	<span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+<span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Chain an async call to be run after the previous added call,
+using the return arguments as the last parameters. You can
+add more before them.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">Butler</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">chainRight</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+	<span class="k">this</span><span class="p">.</span><span class="nx">_addJob</span><span class="p">(</span><span class="s2">&quot;chain-left&quot;</span><span class="p">,</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">slice</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">arguments</span><span class="p">));</span>
+	<span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+<span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>This triggers the task poll to start. It will wait for the poll
+to end. If you define a number of miliseconds to wait, it will
+wait that before continuing to the next poll. If you define a
+function, it will call that.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">Butler</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">wait</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="p">(</span><span class="nx">arguments</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">switch</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">{</span>
+			<span class="k">case</span> <span class="s2">&quot;function&quot;</span><span class="o">:</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">tasksPolls</span><span class="p">[</span><span class="k">this</span><span class="p">.</span><span class="nx">tasksPolls</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">].</span><span class="nx">push</span><span class="p">({</span>
+					<span class="s2">&quot;action&quot;</span>  <span class="o">:</span> <span class="s2">&quot;wait&quot;</span><span class="p">,</span>
+					<span class="s2">&quot;call&quot;</span>    <span class="o">:</span> <span class="nx">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+					<span class="s2">&quot;scope&quot;</span>   <span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">scope</span>
+				<span class="p">});</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">tasksPolls</span><span class="p">.</span><span class="nx">push</span><span class="p">([]);</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">_resumeJobs</span><span class="p">();</span>
+				<span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+			<span class="k">case</span> <span class="s2">&quot;number&quot;</span><span class="o">:</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">tasksPolls</span><span class="p">[</span><span class="k">this</span><span class="p">.</span><span class="nx">tasksPolls</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">].</span><span class="nx">push</span><span class="p">({</span>
+					<span class="s2">&quot;action&quot;</span>  <span class="o">:</span> <span class="s2">&quot;wait&quot;</span><span class="p">,</span>
+					<span class="s2">&quot;wait&quot;</span>    <span class="o">:</span> <span class="nx">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+				<span class="p">});</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">tasksPolls</span><span class="p">.</span><span class="nx">push</span><span class="p">([]);</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">_resumeJobs</span><span class="p">();</span>
+				<span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+		<span class="p">}</span>
 	<span class="p">}</span>
 
-	<span class="k">this</span><span class="p">.</span><span class="nx">actions</span><span class="p">.</span><span class="nx">push</span><span class="p">({</span>
-		<span class="s2">&quot;call&quot;</span> <span class="o">:</span> <span class="nx">params</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-		<span class="s2">&quot;scope&quot;</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_scope</span><span class="p">,</span>
-		<span class="s2">&quot;args&quot;</span> <span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+	<span class="k">this</span><span class="p">.</span><span class="nx">tasksPolls</span><span class="p">[</span><span class="k">this</span><span class="p">.</span><span class="nx">tasksPolls</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">].</span><span class="nx">push</span><span class="p">({</span>
+		<span class="s2">&quot;action&quot;</span>  <span class="o">:</span> <span class="s2">&quot;wait&quot;</span><span class="p">,</span>
+		<span class="s2">&quot;wait&quot;</span>    <span class="o">:</span> <span class="mi">0</span>
 	<span class="p">});</span>
-
+	<span class="k">this</span><span class="p">.</span><span class="nx">tasksPolls</span><span class="p">.</span><span class="nx">push</span><span class="p">([]);</span>
+	<span class="k">this</span><span class="p">.</span><span class="nx">_resumeJobs</span><span class="p">();</span>
 	<span class="k">return</span> <span class="k">this</span><span class="p">;</span>
-<span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>After an asynchronous call, save return param (on index <code>paramIndex</code>)
-on storage (for future use) under the key <code>key</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">Butler</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">store</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">key</span><span class="p">,</span> <span class="nx">paramIndex</span><span class="p">)</span> <span class="p">{</span>
-	<span class="k">this</span><span class="p">.</span><span class="nx">actions</span><span class="p">.</span><span class="nx">push</span><span class="p">({</span>
-		<span class="s2">&quot;store&quot;</span><span class="o">:</span> <span class="nx">key</span><span class="p">,</span>
-		<span class="s2">&quot;index&quot;</span><span class="o">:</span> <span class="nx">paramIndex</span>
-	<span class="p">});</span>
+<span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>This triggers the task poll to start. You don't usually need this
+unless you don't define a callback/number using .wait() before.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">Butler</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">start</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+	<span class="k">this</span><span class="p">.</span><span class="nx">_resumeJobs</span><span class="p">();</span>
 	<span class="k">return</span> <span class="k">this</span><span class="p">;</span>
-<span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Add a waiting callback. This immediately start running the previously
-added callbacks one by one. After all run successfull, this callback
-is executed with 3 parameters: an error object (if some callback in
-the middle fails), the return parameters from the final callback and
-a butler object with 2 methods:</p>
-
-<ul>
-<li><code>butler.set(arg1, ...)</code> sets the parameters to be prepended to the
-next callback (if any).</li>
-<li><code>butler.resume()</code> continues execution of the next callback. This is
-needed if you make an asynchronous action inside the wait callback.
-To make the Butler wait for it, this wait callback must return a
-boolean <code>false</code> and the <code>butler.resume()</code> must be triggered after
-your asynchronous stuff.</li>
-</ul>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">Butler</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">wait</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">cb</span><span class="p">)</span> <span class="p">{</span>
-	<span class="k">this</span><span class="p">.</span><span class="nx">actions</span><span class="p">.</span><span class="nx">push</span><span class="p">({</span>
-		<span class="s2">&quot;wait&quot;</span><span class="o">:</span> <span class="nx">cb</span>
-	<span class="p">});</span>
-	<span class="k">this</span><span class="p">.</span><span class="nx">resume</span><span class="p">();</span>
-
-	<span class="k">return</span> <span class="k">this</span><span class="p">;</span>
-<span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Instructs the butler that the previous calls are to be runned in
-parallel, without arguments passing from one to another.
-The callback is executed at the end of all the asynchronous calls
-with the result of all the callbacks.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">Butler</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">parallel</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">cb</span><span class="p">)</span> <span class="p">{</span>
-	<span class="k">this</span><span class="p">.</span><span class="nx">actions</span><span class="p">.</span><span class="nx">push</span><span class="p">({</span>
-		<span class="s2">&quot;parallel&quot;</span><span class="o">:</span> <span class="nx">cb</span>
-	<span class="p">});</span>
-	<span class="k">this</span><span class="p">.</span><span class="nx">resume</span><span class="p">();</span>
-
-	<span class="k">return</span> <span class="k">this</span><span class="p">;</span>
-<span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Returns <code>true</code> if an asynchronous call is runing and has
-still not yet invoked the callback. This will always be
-<code>false</code> inside the <code>.wait()</code> callbacks, unless you invoke
-<code>.resume()</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">Butler</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">busy</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">cb</span><span class="p">)</span> <span class="p">{</span>
-	<span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_working</span><span class="p">;</span>
 <span class="p">};</span>
-
-<span class="nx">Butler</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">resume</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">params</span><span class="p">)</span> <span class="p">{</span>
-	<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_working</span> <span class="o">||</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">actions</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
+<span class="nx">Butler</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">_resumeJobs</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">force</span><span class="p">)</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">tasksPolls</span><span class="p">.</span><span class="nx">length</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">force</span><span class="p">)</span> <span class="k">this</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s2">&quot;end&quot;</span><span class="p">);</span>
 		<span class="k">return</span><span class="p">;</span>
 	<span class="p">}</span>
 
-	<span class="k">this</span><span class="p">.</span><span class="nx">_working</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+	<span class="cm">/* console.log(&quot;Butler._resumeJobs(%s)&quot;, force); */</span>
 
-	<span class="kd">var</span> <span class="nx">parallelResume</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
-
-	<span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">actions</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-		<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">actions</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="s2">&quot;call&quot;</span><span class="p">))</span> <span class="k">continue</span><span class="p">;</span>
-		<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">actions</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="s2">&quot;wait&quot;</span><span class="p">))</span> <span class="k">break</span><span class="p">;</span>
-		<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">actions</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="s2">&quot;store&quot;</span><span class="p">))</span> <span class="k">break</span><span class="p">;</span>
-		<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">actions</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="s2">&quot;parallel&quot;</span><span class="p">))</span> <span class="p">{</span>
-			<span class="nx">parallelResume</span> <span class="o">=</span> <span class="nx">i</span><span class="p">;</span>
-			<span class="k">break</span><span class="p">;</span>
+	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">force</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">jobs</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">jobs</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">finished</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>
 		<span class="p">}</span>
 	<span class="p">}</span>
 
-	<span class="k">if</span> <span class="p">(</span><span class="nx">parallelResume</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-		<span class="cm">/* ??? */</span>
-		<span class="k">return</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;parallel resume without anything to run&quot;</span><span class="p">);</span>
-	<span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">parallelResume</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-		<span class="kd">var</span> <span class="nx">actions</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">actions</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nx">parallelResume</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
-		    <span class="nx">parallelCb</span> <span class="o">=</span> <span class="nx">actions</span><span class="p">.</span><span class="nx">pop</span><span class="p">(),</span>
-		    <span class="nx">missingActions</span> <span class="o">=</span> <span class="nx">actions</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span>
-		    <span class="nx">errors</span> <span class="o">=</span> <span class="p">[],</span>
-		    <span class="nx">returns</span> <span class="o">=</span> <span class="p">[];</span>
+	<span class="kd">var</span> <span class="nx">poll</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">tasksPolls</span><span class="p">.</span><span class="nx">shift</span><span class="p">(),</span> <span class="nx">len</span> <span class="o">=</span> <span class="nx">poll</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
 
-		<span class="k">this</span><span class="p">.</span><span class="nx">_last_wait</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	<span class="k">if</span> <span class="p">(</span><span class="nx">len</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+		<span class="kd">var</span> <span class="nx">lastIsWait</span> <span class="o">=</span> <span class="nx">poll</span><span class="p">[</span><span class="nx">len</span> <span class="o">-</span> <span class="mi">1</span><span class="p">].</span><span class="nx">action</span> <span class="o">==</span> <span class="s2">&quot;wait&quot;</span><span class="p">;</span>
 
-		<span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">actions</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-			<span class="nx">returns</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">[];</span>
+		<span class="cm">/* console.log(&quot;Butler: new poll &quot;, poll); */</span>
+		<span class="k">this</span><span class="p">.</span><span class="nx">jobs</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="k">new</span> <span class="nx">ButlerJob</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">poll</span><span class="p">));</span>
+
+		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">lastIsWait</span><span class="p">)</span> <span class="p">{</span>
+			<span class="k">this</span><span class="p">.</span><span class="nx">_resumeJobs</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
 		<span class="p">}</span>
-
-		<span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">actions</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-			<span class="kd">var</span> <span class="nx">callName</span> <span class="o">=</span> <span class="nx">findCallName</span><span class="p">(</span><span class="nx">actions</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">call</span><span class="p">);</span>
-
-			<span class="nx">actions</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">args</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span>
-				<span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">butler</span><span class="p">,</span> <span class="nx">n</span><span class="p">,</span> <span class="nx">callbackName</span><span class="p">)</span> <span class="p">{</span>
-					<span class="k">return</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-						<span class="nx">missingActions</span><span class="o">--</span><span class="p">;</span>
-						<span class="kd">var</span> <span class="nx">params</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">slice</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">arguments</span><span class="p">);</span>
-						<span class="k">if</span> <span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">length</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-							<span class="nx">returns</span><span class="p">[</span><span class="nx">n</span><span class="p">].</span><span class="nx">push</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
-						<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-							<span class="cm">/* 1st argument must always be an error object */</span>
-							<span class="k">if</span> <span class="p">(</span><span class="nx">params</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">{</span>
-								<span class="nx">params</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">callbackIndex</span> <span class="o">=</span> <span class="nx">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
-
-								<span class="nx">errors</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
-							<span class="p">}</span>
-							<span class="nx">returns</span><span class="p">[</span><span class="nx">n</span><span class="p">]</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">||</span> <span class="kc">null</span><span class="p">;</span>
-						<span class="p">}</span>
-						<span class="nx">butler</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s2">&quot;call.end&quot;</span><span class="p">,</span>
-						            <span class="nx">callbackName</span><span class="p">,</span>
-						            <span class="nx">params</span> <span class="o">?</span> <span class="nx">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
-						            <span class="nx">params</span> <span class="o">?</span> <span class="nx">params</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">:</span> <span class="p">[]);</span>
-
-						<span class="k">if</span> <span class="p">(</span><span class="nx">missingActions</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-							<span class="kd">var</span> <span class="nx">ret</span><span class="p">,</span> <span class="nx">ctx</span> <span class="o">=</span> <span class="nx">butler</span><span class="p">.</span><span class="nx">_getButlerCallbackObject</span><span class="p">();</span>
-
-							<span class="nx">butler</span><span class="p">.</span><span class="nx">_working</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
-
-							<span class="nx">ctx</span><span class="p">.</span><span class="nx">errors</span> <span class="o">=</span> <span class="nx">errors</span><span class="p">;</span>
-							<span class="nx">ctx</span><span class="p">.</span><span class="nx">returns</span> <span class="o">=</span> <span class="nx">returns</span><span class="p">;</span>
-
-							<span class="nx">ret</span> <span class="o">=</span> <span class="nx">parallelCb</span><span class="p">.</span><span class="nx">parallel</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">ctx</span><span class="p">);</span>
-							<span class="k">if</span> <span class="p">(</span><span class="nx">ret</span> <span class="o">!==</span> <span class="kc">false</span><span class="p">)</span> <span class="p">{</span>
-								<span class="nx">butler</span><span class="p">.</span><span class="nx">resume</span><span class="p">(</span><span class="k">typeof</span> <span class="nx">ret</span> <span class="o">==</span> <span class="s2">&quot;object&quot;</span> <span class="o">?</span> <span class="nx">ret</span>
-								                                     <span class="o">:</span> <span class="nx">butler</span><span class="p">.</span><span class="nx">_next_params</span><span class="p">);</span>
-							<span class="p">}</span>
-						<span class="p">}</span>
-					<span class="p">};</span>
-				<span class="p">})(</span><span class="k">this</span><span class="p">,</span> <span class="nx">i</span><span class="p">,</span> <span class="nx">callName</span><span class="p">)</span>
-			<span class="p">);</span>
-
-			<span class="k">this</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s2">&quot;call.start&quot;</span><span class="p">,</span> <span class="nx">callName</span><span class="p">,</span> <span class="nx">actions</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">args</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">));</span>
-			<span class="nx">actions</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">call</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">actions</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">scope</span><span class="p">,</span> <span class="nx">actions</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">args</span><span class="p">);</span>
-		<span class="p">}</span>
-		<span class="k">return</span><span class="p">;</span>
 	<span class="p">}</span>
-
-	<span class="kd">var</span> <span class="nx">action</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">actions</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">).</span><span class="nx">pop</span><span class="p">();</span>
-
-	<span class="nx">params</span> <span class="o">=</span> <span class="nx">params</span> <span class="o">||</span> <span class="k">this</span><span class="p">.</span><span class="nx">_next_params</span><span class="p">;</span>
-	<span class="k">delete</span> <span class="k">this</span><span class="p">.</span><span class="nx">_next_params</span><span class="p">;</span>
-
-	<span class="k">if</span> <span class="p">(</span><span class="nx">action</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="s2">&quot;store&quot;</span><span class="p">))</span> <span class="p">{</span>
-		<span class="kd">var</span> <span class="nx">index</span> <span class="o">=</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">max</span><span class="p">(</span><span class="nx">action</span><span class="p">.</span><span class="nx">index</span> <span class="o">||</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-		<span class="k">this</span><span class="p">.</span><span class="nx">storage</span><span class="p">[</span><span class="nx">action</span><span class="p">.</span><span class="nx">store</span><span class="p">]</span> <span class="o">=</span> <span class="nx">params</span> <span class="o">&amp;&amp;</span> <span class="nx">params</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="nx">index</span> <span class="o">?</span> <span class="nx">params</span><span class="p">[</span><span class="nx">index</span><span class="p">]</span>
-		                                                             <span class="o">:</span> <span class="kc">null</span><span class="p">;</span>
-		<span class="k">this</span><span class="p">.</span><span class="nx">_next_params</span> <span class="o">=</span> <span class="nx">params</span><span class="p">;</span>
-		<span class="k">this</span><span class="p">.</span><span class="nx">_working</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
-		<span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">resume</span><span class="p">();</span>
-	<span class="p">}</span>
-	<span class="k">if</span> <span class="p">(</span><span class="nx">action</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="s2">&quot;call&quot;</span><span class="p">))</span> <span class="p">{</span>
-		<span class="k">if</span> <span class="p">(</span><span class="nx">params</span> <span class="o">&amp;&amp;</span> <span class="nx">params</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
-			<span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span><span class="o">--</span><span class="p">)</span> <span class="p">{</span>
-				<span class="nx">action</span><span class="p">.</span><span class="nx">args</span><span class="p">.</span><span class="nx">unshift</span><span class="p">(</span><span class="nx">params</span><span class="p">[</span><span class="nx">i</span><span class="p">]);</span>
+<span class="p">};</span>
+<span class="nx">Butler</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">_addJob</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">type</span><span class="p">,</span> <span class="nx">params</span><span class="p">)</span> <span class="p">{</span>
+	<span class="k">switch</span> <span class="p">(</span><span class="nx">type</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">case</span> <span class="s2">&quot;async&quot;</span><span class="o">:</span>
+			<span class="kd">var</span> <span class="nx">len</span>  <span class="o">=</span><span class="k">this</span><span class="p">.</span><span class="nx">tasksPolls</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">len</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">||</span> <span class="k">this</span><span class="p">.</span><span class="nx">tasksPolls</span><span class="p">[</span><span class="nx">len</span> <span class="o">-</span> <span class="mi">1</span><span class="p">].</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">tasksPolls</span><span class="p">.</span><span class="nx">push</span><span class="p">([]);</span>
 			<span class="p">}</span>
-		<span class="p">}</span>
+		<span class="k">case</span> <span class="s2">&quot;chain-left&quot;</span><span class="o">:</span>
+		<span class="k">case</span> <span class="s2">&quot;chain-right&quot;</span><span class="o">:</span>
+			<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">params</span><span class="p">.</span><span class="nx">length</span> <span class="o">||</span> <span class="k">typeof</span> <span class="nx">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;function&quot;</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">({</span> <span class="nx">code</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">message</span><span class="o">:</span> <span class="s2">&quot;Function not specified&quot;</span> <span class="p">});</span>
+			<span class="p">}</span>
+			<span class="k">this</span><span class="p">.</span><span class="nx">tasksPolls</span><span class="p">[</span><span class="k">this</span><span class="p">.</span><span class="nx">tasksPolls</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">].</span><span class="nx">push</span><span class="p">({</span>
+				<span class="s2">&quot;action&quot;</span>  <span class="o">:</span> <span class="s2">&quot;call&quot;</span><span class="p">,</span>
+				<span class="s2">&quot;call&quot;</span>    <span class="o">:</span> <span class="nx">params</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+				<span class="s2">&quot;scope&quot;</span>   <span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">scope</span><span class="p">,</span>
+				<span class="s2">&quot;params&quot;</span>  <span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+				<span class="s2">&quot;type&quot;</span>    <span class="o">:</span> <span class="nx">type</span>
+			<span class="p">});</span>
+			<span class="k">break</span><span class="p">;</span>
+		<span class="k">case</span> <span class="s2">&quot;store&quot;</span><span class="o">:</span>
+			<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">tasksPolls</span><span class="p">.</span><span class="nx">length</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>
 
-		<span class="kd">var</span> <span class="nx">callName</span> <span class="o">=</span> <span class="nx">findCallName</span><span class="p">(</span><span class="nx">action</span><span class="p">.</span><span class="nx">call</span><span class="p">);</span>
-
-		<span class="nx">action</span><span class="p">.</span><span class="nx">args</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span>
-			<span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">butler</span><span class="p">)</span> <span class="p">{</span>
-				<span class="k">return</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-					<span class="kd">var</span> <span class="nx">return_params</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">slice</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">arguments</span><span class="p">);</span>
-
-					<span class="nx">butler</span><span class="p">.</span><span class="nx">_working</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
-					<span class="nx">butler</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s2">&quot;call.end&quot;</span><span class="p">,</span>
-					            <span class="nx">callName</span><span class="p">,</span>
-					            <span class="nx">return_params</span> <span class="o">?</span> <span class="nx">return_params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
-					            <span class="nx">return_params</span> <span class="o">?</span> <span class="nx">return_params</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">:</span> <span class="p">[]);</span>
-					<span class="nx">butler</span><span class="p">.</span><span class="nx">_handleReturn</span><span class="p">(</span><span class="nx">return_params</span><span class="p">);</span>
-				<span class="p">};</span>
-			<span class="p">})(</span><span class="k">this</span><span class="p">)</span>
-		<span class="p">);</span>
-
-		<span class="k">this</span><span class="p">.</span><span class="nx">_last_wait</span><span class="o">++</span><span class="p">;</span>
-
-		<span class="k">this</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s2">&quot;call.start&quot;</span><span class="p">,</span> <span class="nx">callName</span><span class="p">,</span> <span class="nx">action</span><span class="p">.</span><span class="nx">args</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">));</span>
-		<span class="nx">action</span><span class="p">.</span><span class="nx">call</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">action</span><span class="p">.</span><span class="nx">scope</span><span class="p">,</span> <span class="nx">action</span><span class="p">.</span><span class="nx">args</span><span class="p">);</span>
-		<span class="k">return</span><span class="p">;</span>
-	<span class="p">}</span>
-	<span class="k">if</span> <span class="p">(</span><span class="nx">action</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="s2">&quot;wait&quot;</span><span class="p">))</span> <span class="p">{</span>
-		<span class="kd">var</span> <span class="nx">ctx</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_getButlerCallbackObject</span><span class="p">();</span>
-
-		<span class="k">this</span><span class="p">.</span><span class="nx">_next_params</span> <span class="o">=</span> <span class="nx">params</span> <span class="o">||</span> <span class="p">[];</span>
-		<span class="k">this</span><span class="p">.</span><span class="nx">_last_wait</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-		<span class="k">this</span><span class="p">.</span><span class="nx">_working</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
-
-		<span class="kd">var</span> <span class="nx">ret</span> <span class="o">=</span> <span class="nx">action</span><span class="p">.</span><span class="nx">wait</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="p">[</span> <span class="kc">null</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">_next_params</span> <span class="p">]);</span>
-		<span class="k">if</span> <span class="p">(</span><span class="nx">ret</span> <span class="o">!==</span> <span class="kc">false</span><span class="p">)</span> <span class="p">{</span>
-			<span class="k">this</span><span class="p">.</span><span class="nx">resume</span><span class="p">(</span><span class="k">typeof</span> <span class="nx">ret</span> <span class="o">==</span> <span class="s2">&quot;object&quot;</span> <span class="o">?</span> <span class="nx">ret</span> <span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_next_params</span><span class="p">);</span>
-		<span class="p">}</span>
-		<span class="k">return</span><span class="p">;</span>
+			<span class="k">this</span><span class="p">.</span><span class="nx">tasksPolls</span><span class="p">[</span><span class="k">this</span><span class="p">.</span><span class="nx">tasksPolls</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">].</span><span class="nx">push</span><span class="p">({</span>
+				<span class="s2">&quot;action&quot;</span>  <span class="o">:</span> <span class="s2">&quot;store&quot;</span><span class="p">,</span>
+				<span class="s2">&quot;key&quot;</span>     <span class="o">:</span> <span class="nx">params</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+				<span class="s2">&quot;index&quot;</span>   <span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="o">?</span> <span class="nx">params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">:</span> <span class="mi">0</span>
+			<span class="p">});</span>
+			<span class="k">break</span><span class="p">;</span>
 	<span class="p">}</span>
 <span class="p">};</span>
-<span class="nx">Butler</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">_handleReturn</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">params</span><span class="p">)</span> <span class="p">{</span>
-	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">params</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
-		<span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">resume</span><span class="p">();</span>
-	<span class="p">}</span>
-	<span class="k">if</span> <span class="p">(</span><span class="nx">params</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">{</span>
-		<span class="cm">/* error */</span>
-		<span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">actions</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-			<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">actions</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="s2">&quot;wait&quot;</span><span class="p">))</span> <span class="p">{</span>
-				<span class="kd">var</span> <span class="nx">action</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">actions</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nx">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">).</span><span class="nx">pop</span><span class="p">(),</span>
-				    <span class="nx">ctx</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_getButlerCallbackObject</span><span class="p">();</span>
 
-				<span class="nx">params</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">callbackIndex</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_last_wait</span><span class="p">;</span>
+<span class="kd">function</span> <span class="nx">ButlerJob</span><span class="p">(</span><span class="nx">butler</span><span class="p">,</span> <span class="nx">tasks</span><span class="p">)</span> <span class="p">{</span>
+	<span class="k">this</span><span class="p">.</span><span class="nx">butler</span> <span class="o">=</span> <span class="nx">butler</span><span class="p">;</span>
+	<span class="k">this</span><span class="p">.</span><span class="nx">tasks</span> <span class="o">=</span> <span class="nx">tasks</span><span class="p">;</span>
+	<span class="k">this</span><span class="p">.</span><span class="nx">env</span> <span class="o">=</span> <span class="p">{</span>
+		<span class="s2">&quot;params&quot;</span><span class="o">:</span> <span class="p">[]</span>
+	<span class="p">};</span>
+	<span class="k">this</span><span class="p">.</span><span class="nx">finished</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+	<span class="k">this</span><span class="p">.</span><span class="nx">run</span><span class="p">();</span>
+<span class="p">}</span>
+<span class="nx">ButlerJob</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">run</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">tasks</span><span class="p">.</span><span class="nx">length</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_pollFinished</span><span class="p">();</span>
 
-				<span class="k">this</span><span class="p">.</span><span class="nx">_last_wait</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-				<span class="k">this</span><span class="p">.</span><span class="nx">_working</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+	<span class="kd">var</span> <span class="nx">task</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">tasks</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">).</span><span class="nx">pop</span><span class="p">(),</span>
+	    <span class="nx">params</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">slice</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">arguments</span><span class="p">);</span>
 
-				<span class="kd">var</span> <span class="nx">ret</span> <span class="o">=</span> <span class="nx">action</span><span class="p">.</span><span class="nx">wait</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="p">[</span> <span class="nx">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">]);</span>
-				<span class="k">if</span> <span class="p">(</span><span class="nx">ret</span> <span class="o">!==</span> <span class="kc">false</span><span class="p">)</span> <span class="p">{</span>
-					<span class="k">this</span><span class="p">.</span><span class="nx">resume</span><span class="p">(</span><span class="k">typeof</span> <span class="nx">ret</span> <span class="o">==</span> <span class="s2">&quot;object&quot;</span> <span class="o">?</span> <span class="nx">ret</span> <span class="o">:</span> <span class="kc">null</span><span class="p">);</span>
+	<span class="k">switch</span> <span class="p">(</span><span class="nx">task</span><span class="p">.</span><span class="nx">action</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">case</span> <span class="s2">&quot;call&quot;</span><span class="o">:</span>
+			<span class="kd">var</span> <span class="nx">call_params</span> <span class="o">=</span> <span class="nx">task</span><span class="p">.</span><span class="nx">params</span><span class="p">,</span> <span class="nx">call_name</span> <span class="o">=</span> <span class="nx">findCallName</span><span class="p">(</span><span class="nx">task</span><span class="p">.</span><span class="nx">call</span><span class="p">);</span>
+
+			<span class="k">switch</span> <span class="p">(</span><span class="nx">task</span><span class="p">.</span><span class="nx">type</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">case</span> <span class="s2">&quot;chain-left&quot;</span><span class="o">:</span>
+					<span class="nx">call_params</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">concat</span><span class="p">(</span><span class="nx">task</span><span class="p">.</span><span class="nx">params</span><span class="p">);</span>
+					<span class="k">break</span><span class="p">;</span>
+				<span class="k">case</span> <span class="s2">&quot;chain-right&quot;</span><span class="o">:</span>
+					<span class="nx">call_params</span> <span class="o">=</span> <span class="nx">task</span><span class="p">.</span><span class="nx">params</span><span class="p">.</span><span class="nx">concat</span><span class="p">(</span><span class="nx">params</span><span class="p">);</span>
+					<span class="k">break</span><span class="p">;</span>
+			<span class="p">}</span>
+
+			<span class="nx">call_params</span><span class="p">.</span><span class="nx">push</span><span class="p">((</span><span class="kd">function</span> <span class="p">(</span><span class="nx">butler</span><span class="p">,</span> <span class="nx">taskCall</span><span class="p">,</span> <span class="nx">params</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">return</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+					<span class="kd">var</span> <span class="nx">p</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">slice</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">arguments</span><span class="p">);</span>
+					<span class="nx">p</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">call_name</span><span class="p">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">));</span>
+
+					<span class="nx">butler</span><span class="p">.</span><span class="nx">_taskFinished</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">butler</span><span class="p">,</span> <span class="nx">p</span><span class="p">);</span>
 				<span class="p">}</span>
+			<span class="p">})(</span><span class="k">this</span><span class="p">,</span> <span class="nx">task</span><span class="p">.</span><span class="nx">call</span><span class="p">,</span> <span class="nx">call_params</span><span class="p">));</span>
+
+			<span class="k">this</span><span class="p">.</span><span class="nx">butler</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s2">&quot;task-start&quot;</span><span class="p">,</span> <span class="nx">call_name</span><span class="p">,</span> <span class="nx">call_params</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">));</span>
+
+			<span class="nx">task</span><span class="p">.</span><span class="nx">call</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">task</span><span class="p">.</span><span class="nx">scope</span><span class="p">,</span> <span class="nx">call_params</span><span class="p">);</span>
+			<span class="k">break</span><span class="p">;</span>
+		<span class="k">case</span> <span class="s2">&quot;store&quot;</span><span class="o">:</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">task</span><span class="p">.</span><span class="nx">index</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="nx">task</span><span class="p">.</span><span class="nx">index</span> <span class="o">&lt;</span> <span class="nx">params</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">butler</span><span class="p">.</span><span class="nx">storage</span><span class="p">[</span><span class="nx">task</span><span class="p">.</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="nx">params</span><span class="p">[</span><span class="nx">task</span><span class="p">.</span><span class="nx">index</span><span class="p">];</span>
+			<span class="p">}</span>
+			<span class="k">this</span><span class="p">.</span><span class="nx">run</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">params</span><span class="p">);</span>
+			<span class="k">break</span><span class="p">;</span>
+		<span class="k">case</span> <span class="s2">&quot;wait&quot;</span><span class="o">:</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">task</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="s2">&quot;wait&quot;</span><span class="p">))</span> <span class="p">{</span>
+				<span class="cm">/* just wait a few miliseconds */</span>
+				<span class="nx">setTimeout</span><span class="p">((</span><span class="kd">function</span> <span class="p">(</span><span class="nx">butlerjob</span><span class="p">)</span> <span class="p">{</span>
+					<span class="k">return</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+						<span class="nx">butlerjob</span><span class="p">.</span><span class="nx">_pollFinished</span><span class="p">();</span>
+					<span class="p">};</span>
+				<span class="p">})(</span><span class="k">this</span><span class="p">),</span> <span class="nx">task</span><span class="p">.</span><span class="nx">wait</span><span class="p">);</span>
 				<span class="k">return</span><span class="p">;</span>
 			<span class="p">}</span>
-		<span class="p">}</span>
-		<span class="k">return</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;error without a wait() call to handle!&quot;</span><span class="p">,</span>
-		                   <span class="nx">params</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="k">this</span><span class="p">.</span><span class="nx">_last_wait</span><span class="p">);</span>
+			<span class="nx">params</span><span class="p">.</span><span class="nx">unshift</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">task</span><span class="p">.</span><span class="nx">call</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">task</span><span class="p">.</span><span class="nx">scope</span><span class="p">,</span> <span class="nx">params</span><span class="p">)</span> <span class="o">!==</span> <span class="kc">false</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">_pollFinished</span><span class="p">();</span>
+			<span class="p">}</span>
+			<span class="k">break</span><span class="p">;</span>
+		<span class="k">default</span><span class="o">:</span>
+			<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;unknown action&quot;</span><span class="p">,</span> <span class="nx">task</span><span class="p">);</span>
+	<span class="p">}</span>
+<span class="p">};</span>
+<span class="nx">ButlerJob</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">_taskFinished</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+	<span class="kd">var</span> <span class="nx">params</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">slice</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">arguments</span><span class="p">),</span>
+	    <span class="nx">callName</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">).</span><span class="nx">pop</span><span class="p">(),</span>
+	    <span class="nx">callParams</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">).</span><span class="nx">pop</span><span class="p">();</span>
+
+	<span class="k">this</span><span class="p">.</span><span class="nx">butler</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s2">&quot;task-end&quot;</span><span class="p">,</span> <span class="nx">callName</span><span class="p">,</span> <span class="nx">callParams</span><span class="p">,</span>
+	                 <span class="nx">params</span><span class="p">.</span><span class="nx">length</span> <span class="o">?</span> <span class="nx">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">:</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">length</span> <span class="o">?</span> <span class="nx">params</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">:</span> <span class="p">[]);</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">length</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">run</span><span class="p">();</span>
+	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">params</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">run</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">tasks</span><span class="p">.</span><span class="nx">length</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">||</span> <span class="k">this</span><span class="p">.</span><span class="nx">tasks</span><span class="p">[</span><span class="k">this</span><span class="p">.</span><span class="nx">tasks</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">].</span><span class="nx">action</span> <span class="o">!=</span> <span class="s2">&quot;wait&quot;</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">this</span><span class="p">.</span><span class="nx">butler</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="nx">params</span><span class="p">);</span>
+		<span class="k">return</span><span class="p">;</span>
 	<span class="p">}</span>
 
-	<span class="k">this</span><span class="p">.</span><span class="nx">resume</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
+	<span class="kd">var</span> <span class="nx">task</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">tasks</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span>
+	<span class="k">this</span><span class="p">.</span><span class="nx">tasks</span><span class="p">.</span><span class="nx">length</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+	<span class="nx">task</span><span class="p">.</span><span class="nx">call</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="p">[</span> <span class="nx">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">]);</span>
+
+	<span class="k">this</span><span class="p">.</span><span class="nx">_pollFinished</span><span class="p">();</span>
 <span class="p">};</span>
-<span class="nx">Butler</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">_getButlerCallbackObject</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-	<span class="k">return</span> <span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">butler</span><span class="p">)</span> <span class="p">{</span>
-		<span class="k">return</span> <span class="p">{</span>
-			<span class="s2">&quot;params&quot;</span><span class="o">:</span> <span class="p">{</span>
-				<span class="s2">&quot;length&quot;</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-					<span class="k">return</span> <span class="p">(</span><span class="nx">butler</span><span class="p">.</span><span class="nx">_next_params</span> <span class="o">||</span> <span class="p">[]).</span><span class="nx">length</span><span class="p">;</span>
-				<span class="p">},</span>
-				<span class="s2">&quot;set&quot;</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-					<span class="nx">butler</span><span class="p">.</span><span class="nx">_next_params</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">slice</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">arguments</span><span class="p">);</span>
-					<span class="k">return</span> <span class="k">this</span><span class="p">;</span>
-				<span class="p">},</span>
-				<span class="s2">&quot;get&quot;</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">i</span><span class="p">)</span> <span class="p">{</span>
-					<span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">i</span> <span class="o">==</span> <span class="s2">&quot;number&quot;</span><span class="p">)</span> <span class="p">{</span>
-						<span class="k">if</span> <span class="p">(</span><span class="nx">butler</span><span class="p">.</span><span class="nx">_next_params</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
-							<span class="k">if</span> <span class="p">(</span><span class="nx">i</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">butler</span><span class="p">.</span><span class="nx">_next_params</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
-								<span class="k">return</span> <span class="nx">butler</span><span class="p">.</span><span class="nx">_next_params</span><span class="p">[</span><span class="nx">i</span><span class="p">];</span>
-							<span class="p">}</span>
-						<span class="p">}</span>
-						<span class="k">return</span> <span class="kc">null</span><span class="p">;</span>
-					<span class="p">}</span>
-					<span class="k">return</span> <span class="nx">butler</span><span class="p">.</span><span class="nx">_next_params</span> <span class="o">||</span> <span class="p">[];</span>
-				<span class="p">},</span>
-				<span class="s2">&quot;first&quot;</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-					<span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
-				<span class="p">},</span>
-				<span class="s2">&quot;last&quot;</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-					<span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">butler</span><span class="p">.</span><span class="nx">_next_params</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">);</span>
-				<span class="p">},</span>
-				<span class="s2">&quot;clear&quot;</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-					<span class="nx">butler</span><span class="p">.</span><span class="nx">_next_params</span> <span class="o">=</span> <span class="p">[];</span>
-					<span class="k">return</span> <span class="k">this</span><span class="p">;</span>
-				<span class="p">},</span>
-				<span class="s2">&quot;append&quot;</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-					<span class="kd">var</span> <span class="nx">args</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">slice</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">arguments</span><span class="p">);</span>
-					<span class="nx">butler</span><span class="p">.</span><span class="nx">_next_params</span> <span class="o">=</span> <span class="p">(</span><span class="nx">butler</span><span class="p">.</span><span class="nx">_next_params</span> <span class="o">||</span> <span class="p">[]).</span><span class="nx">concat</span><span class="p">(</span><span class="nx">args</span><span class="p">);</span>
-					<span class="k">return</span> <span class="k">this</span><span class="p">;</span>
-				<span class="p">},</span>
-				<span class="s2">&quot;prepend&quot;</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-					<span class="kd">var</span> <span class="nx">args</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">slice</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">arguments</span><span class="p">);</span>
-					<span class="nx">butler</span><span class="p">.</span><span class="nx">_next_params</span> <span class="o">=</span> <span class="nx">args</span><span class="p">.</span><span class="nx">concat</span><span class="p">(</span><span class="nx">butler</span><span class="p">.</span><span class="nx">_next_params</span> <span class="o">||</span> <span class="p">[]);</span>
-					<span class="k">return</span> <span class="k">this</span><span class="p">;</span>
-				<span class="p">}</span>
-			<span class="p">},</span>
-			<span class="s2">&quot;storage&quot;</span><span class="o">:</span> <span class="nx">butler</span><span class="p">.</span><span class="nx">storage</span><span class="p">,</span>
-			<span class="s2">&quot;resume&quot;</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-				<span class="nx">butler</span><span class="p">.</span><span class="nx">resume</span><span class="p">();</span>
-			<span class="p">}</span>
-		<span class="p">};</span>
-	<span class="p">})(</span><span class="k">this</span><span class="p">);</span>
+<span class="nx">ButlerJob</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">_pollFinished</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+	<span class="k">this</span><span class="p">.</span><span class="nx">finished</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+	<span class="k">this</span><span class="p">.</span><span class="nx">butler</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s2">&quot;job-end&quot;</span><span class="p">);</span>
+	<span class="k">this</span><span class="p">.</span><span class="nx">butler</span><span class="p">.</span><span class="nx">_resumeJobs</span><span class="p">();</span>
 <span class="p">};</span>
 
 <span class="nx">exports</span><span class="p">.</span><span class="nx">Butler</span> <span class="o">=</span> <span class="nx">Butler</span><span class="p">;</span>
